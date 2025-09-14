@@ -9,20 +9,27 @@ const UserModal: React.FC<{
     onSave: (user: User) => void;
     userToEdit: User | null;
 }> = ({ isOpen, onClose, onSave, userToEdit }) => {
-    const [name, setName] = useState(userToEdit?.name || '');
-    const [email, setEmail] = useState(userToEdit?.email || '');
-    const [role, setRole] = useState(userToEdit?.role || UserRole.COLLABORATOR);
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [role, setRole] = useState(UserRole.COLLABORATOR);
+    const [password, setPassword] = useState('');
+    const [forcePasswordChange, setForcePasswordChange] = useState(true);
 
     React.useEffect(() => {
-        if (userToEdit) {
-            setName(userToEdit.name);
-            setEmail(userToEdit.email);
-            // FIX: Corrected typo `userToedit` to `userToEdit`.
-            setRole(userToEdit.role);
-        } else {
-            setName('');
-            setEmail('');
-            setRole(UserRole.COLLABORATOR);
+        if (isOpen) {
+            if (userToEdit) {
+                setName(userToEdit.name);
+                setEmail(userToEdit.email);
+                setRole(userToEdit.role);
+                setForcePasswordChange(userToEdit.forcePasswordChange || false);
+                setPassword('');
+            } else {
+                setName('');
+                setEmail('');
+                setRole(UserRole.COLLABORATOR);
+                setPassword('');
+                setForcePasswordChange(true);
+            }
         }
     }, [userToEdit, isOpen]);
 
@@ -30,12 +37,20 @@ const UserModal: React.FC<{
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({
+        const userData: User = {
             id: userToEdit?.id || `user-${Date.now()}`,
             name,
             email,
             role,
-        });
+            forcePasswordChange,
+            avatarUrl: userToEdit?.avatarUrl || `https://i.pravatar.cc/150?u=${email}`,
+        };
+
+        if (!userToEdit) {
+            userData.password = password;
+        }
+
+        onSave(userData);
         onClose();
     };
 
@@ -54,12 +69,41 @@ const UserModal: React.FC<{
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
                         <input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white" required />
                     </div>
-                    <div className="mb-6">
+                    <div className="mb-4">
                         <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Perfil</label>
                         <select id="role" value={role} onChange={e => setRole(e.target.value as UserRole)} className="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                             {Object.values(UserRole).map(r => <option key={r} value={r}>{r}</option>)}
                         </select>
                     </div>
+
+                    {!userToEdit && (
+                        <div className="mb-4">
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Senha Temporária</label>
+                            <input
+                                type="password"
+                                id="password"
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                autoComplete="new-password"
+                                required
+                            />
+                        </div>
+                    )}
+                    
+                    <div className="mb-6 flex items-center">
+                        <input
+                            id="forcePasswordChange"
+                            type="checkbox"
+                            checked={forcePasswordChange}
+                            onChange={(e) => setForcePasswordChange(e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                        />
+                        <label htmlFor="forcePasswordChange" className="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Forçar alteração de senha no primeiro login
+                        </label>
+                    </div>
+
                     <div className="flex justify-end space-x-4">
                         <button type="button" onClick={onClose} className="py-2 px-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500">Cancelar</button>
                         <button type="submit" className="py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Salvar</button>

@@ -23,6 +23,7 @@ export interface User {
   role: UserRole;
   avatarUrl?: string;
   forcePasswordChange?: boolean;
+  password?: string;
 }
 
 export type Permission = 
