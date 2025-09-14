@@ -1,9 +1,11 @@
 
-import React from 'react';
-import { View } from '../types';
+import React, { useMemo } from 'react';
+import { View, User, Permission } from '../types';
 import { DashboardIcon, ProjectsIcon, AdminIcon, FinanceIcon, PermissionsIcon, FemarLogo } from './Icons';
+import { MOCK_ROLE_PERMISSIONS } from '../constants';
 
 interface SidebarProps {
+  user: User;
   currentView: View;
   setCurrentView: (view: View) => void;
 }
@@ -15,6 +17,14 @@ interface NavItemProps {
   isActive: boolean;
   onClick: () => void;
 }
+
+const VIEW_PERMISSIONS: Record<View, Permission> = {
+    [View.DASHBOARD]: 'viewDashboard',
+    [View.PROJECTS]: 'viewProjects',
+    [View.ADMINISTRATIVE]: 'viewAdministrative',
+    [View.FINANCE]: 'viewFinance',
+    [View.PERMISSIONS]: 'managePermissions',
+};
 
 const NavItem: React.FC<NavItemProps> = ({ icon, label, isActive, onClick }) => (
   <button
@@ -30,14 +40,22 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, isActive, onClick }) => 
   </button>
 );
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView }) => {
-  const navItems = [
+const Sidebar: React.FC<SidebarProps> = ({ user, currentView, setCurrentView }) => {
+  const allNavItems = useMemo(() => [
     { icon: <DashboardIcon />, label: 'Dashboard', view: View.DASHBOARD },
     { icon: <ProjectsIcon />, label: 'Projetos', view: View.PROJECTS },
     { icon: <AdminIcon />, label: 'Administrativo', view: View.ADMINISTRATIVE },
     { icon: <FinanceIcon />, label: 'Financeiro', view: View.FINANCE },
     { icon: <PermissionsIcon />, label: 'Permissões', view: View.PERMISSIONS },
-  ];
+  ], []);
+
+  const visibleNavItems = useMemo(() => {
+    const userPermissions = MOCK_ROLE_PERMISSIONS[user.role] || [];
+    return allNavItems.filter(item => {
+        const requiredPermission = VIEW_PERMISSIONS[item.view];
+        return userPermissions.includes(requiredPermission);
+    });
+  }, [user, allNavItems]);
 
   return (
     <div className="hidden md:flex flex-col w-64 bg-gray-800">
@@ -47,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView }) => {
       </div>
       <div className="flex-1 overflow-y-auto p-4">
         <nav>
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <NavItem
               key={item.view}
               icon={item.icon}
