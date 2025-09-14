@@ -122,7 +122,9 @@ const TaskRow: React.FC<{
   task: Task;
   isExpanded: boolean;
   onToggle: () => void;
-}> = ({ task, isExpanded, onToggle }) => (
+  projectId: string;
+  onToggleSubTask: (projectId: string, taskId: string, subTaskId: string) => void;
+}> = ({ task, isExpanded, onToggle, projectId, onToggleSubTask }) => (
     <React.Fragment>
         <tr className="bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700/60 cursor-pointer" onClick={onToggle}>
             <td className="py-2 px-6 text-left pl-12">{task.title}</td>
@@ -156,7 +158,16 @@ const TaskRow: React.FC<{
                             <div>
                                 <h5 className="font-semibold text-sm mb-2 text-gray-700 dark:text-gray-300">Sub-tarefas</h5>
                                 {task.subTasks.length > 0 ? (
-                                    <ul className="space-y-1">{task.subTasks.map(st => (<li key={st.id} className="flex items-center text-sm text-gray-600 dark:text-gray-400">{st.completed ? <CheckCircleIcon /> : <CircleIcon />}<span className={st.completed ? 'line-through' : ''}>{st.title}</span></li>))}</ul>
+                                    <ul className="space-y-1">{task.subTasks.map(st => (
+                                        <li 
+                                            key={st.id} 
+                                            className="flex items-center text-sm text-gray-600 dark:text-gray-400 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700/50 p-1 rounded"
+                                            onClick={() => onToggleSubTask(projectId, task.id, st.id)}
+                                        >
+                                            {st.completed ? <CheckCircleIcon /> : <CircleIcon />}
+                                            <span className={st.completed ? 'line-through' : ''}>{st.title}</span>
+                                        </li>
+                                    ))}</ul>
                                 ) : <p className="text-sm text-gray-500 dark:text-gray-400">Nenhuma sub-tarefa.</p>}
                             </div>
                             <div>
@@ -181,7 +192,8 @@ const ProjectRow: React.FC<{
   onToggleTask: (taskId: string) => void;
   onEdit: () => void;
   onDelete: () => void;
-}> = ({ project, isExpanded, onToggle, expandedTaskId, onToggleTask, onEdit, onDelete }) => (
+  onToggleSubTask: (projectId: string, taskId: string, subTaskId: string) => void;
+}> = ({ project, isExpanded, onToggle, expandedTaskId, onToggleTask, onEdit, onDelete, onToggleSubTask }) => (
   <React.Fragment>
     <tr className="border-b border-gray-200 dark:border-gray-700">
       <td className="py-3 px-6 text-left">{project.name}</td>
@@ -223,7 +235,14 @@ const ProjectRow: React.FC<{
                        </thead>
                        <tbody>
                            {project.tasks.map(task => (
-                              <TaskRow key={task.id} task={task} isExpanded={expandedTaskId === task.id} onToggle={() => onToggleTask(task.id)} />
+                              <TaskRow 
+                                key={task.id} 
+                                task={task} 
+                                isExpanded={expandedTaskId === task.id} 
+                                onToggle={() => onToggleTask(task.id)}
+                                projectId={project.id}
+                                onToggleSubTask={onToggleSubTask}
+                              />
                           ))}
                        </tbody>
                    </table>
@@ -276,6 +295,28 @@ const Projects: React.FC = () => {
     }
   };
 
+  const handleToggleSubTask = (projectId: string, taskId: string, subTaskId: string) => {
+    setProjects(prevProjects =>
+      prevProjects.map(p =>
+        p.id === projectId
+          ? {
+              ...p,
+              tasks: p.tasks.map(t =>
+                t.id === taskId
+                  ? {
+                      ...t,
+                      subTasks: t.subTasks.map(st =>
+                        st.id === subTaskId ? { ...st, completed: !st.completed } : st
+                      ),
+                    }
+                  : t
+              ),
+            }
+          : p
+      )
+    );
+  };
+
   return (
     <div>
       <ProjectModal 
@@ -318,6 +359,7 @@ const Projects: React.FC = () => {
                 onToggleTask={handleToggleTaskRow}
                 onEdit={() => handleOpenModal(project)}
                 onDelete={() => handleDeleteProject(project.id)}
+                onToggleSubTask={handleToggleSubTask}
               />
             ))}
           </tbody>

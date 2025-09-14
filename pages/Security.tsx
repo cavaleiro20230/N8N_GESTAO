@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SecurityEvent, SecurityRiskLevel, User, UserRole } from '../types';
 import { SaveIcon, CheckShieldIcon, DownloadIcon, EyeIcon } from '../components/Icons';
