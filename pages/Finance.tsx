@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { MOCK_INVOICES } from '../constants';
 import { Invoice, InvoiceStatus, User, SecurityRiskLevel } from '../types';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface FinanceProps {
     user: User;
@@ -44,9 +46,50 @@ const Finance: React.FC<FinanceProps> = ({ user, logSecurityEvent }) => {
     logSecurityEvent({
         user: user.email,
         action: 'Geração de Relatório',
-        details: 'Relatório financeiro geral foi gerado.',
+        details: 'Relatório financeiro geral foi gerado e baixado.',
         riskLevel: SecurityRiskLevel.Medium,
     });
+
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.text('Relatório Financeiro - FEMAR Gestão', 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`Gerado por: ${user.name} em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
+
+    const tableColumn = ["Fatura Nº", "Cliente", "Valor", "Vencimento", "Status"];
+    const tableRows: string[][] = [];
+
+    invoices.forEach(invoice => {
+        const invoiceData = [
+            invoice.invoiceNumber,
+            invoice.client,
+            new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.amount),
+            new Date(invoice.dueDate).toLocaleDateString('pt-BR'),
+            invoice.status,
+        ];
+        tableRows.push(invoiceData);
+    });
+
+    autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 40,
+        theme: 'striped',
+        headStyles: { fillColor: [37, 99, 235] }, // Blue color for header
+    });
+    
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(9);
+        doc.setTextColor(150);
+        doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 25, doc.internal.pageSize.height - 10);
+    }
+
+    doc.save('relatorio_financeiro_femar.pdf');
+
     setShowReportSuccess(true);
     setTimeout(() => {
       setShowReportSuccess(false);
@@ -123,7 +166,7 @@ const Finance: React.FC<FinanceProps> = ({ user, logSecurityEvent }) => {
       
       {showReportSuccess && (
         <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md" role="alert">
-            <p>Relatório gerado com sucesso!</p>
+            <p>Relatório gerado e baixado com sucesso!</p>
         </div>
       )}
 
