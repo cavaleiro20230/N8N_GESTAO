@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { MOCK_INVOICES } from '../constants';
 import { Invoice, InvoiceStatus } from '../types';
 
@@ -31,19 +30,82 @@ const InvoiceRow: React.FC<{ invoice: Invoice }> = ({ invoice }) => (
   );
 
 const Finance: React.FC = () => {
+  const [invoices, setInvoices] = useState<Invoice[]>(MOCK_INVOICES);
+  const [showReportSuccess, setShowReportSuccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleGenerateReport = () => {
+    console.log("Gerando relatório financeiro...");
+    setShowReportSuccess(true);
+    setTimeout(() => {
+      setShowReportSuccess(false);
+    }, 3000);
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleInvoiceUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Simula extração de dados via IA a partir do nome do arquivo
+    const clientName = file.name.split('.')[0].replace(/_/g, ' ').replace(/fatura/i, '').trim() || 'Cliente Desconhecido';
+    const randomAmount = Math.random() * 5000 + 1000;
+    const issueDate = new Date();
+    const dueDate = new Date();
+    dueDate.setDate(issueDate.getDate() + 30);
+
+    const newInvoice: Invoice = {
+        id: `inv-${Date.now()}`,
+        invoiceNumber: `2024-${Math.floor(Math.random() * 900) + 100}`,
+        client: clientName,
+        amount: randomAmount,
+        issueDate: issueDate.toISOString().split('T')[0],
+        dueDate: dueDate.toISOString().split('T')[0],
+        status: InvoiceStatus.Pending,
+    };
+
+    setInvoices(prevInvoices => [newInvoice, ...prevInvoices]);
+    
+    if (event.target) {
+        event.target.value = '';
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-semibold text-gray-800 dark:text-white">Gerenciamento Financeiro</h2>
         <div className="space-x-2">
-            <button className="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-300">
+            <button 
+                onClick={handleGenerateReport}
+                className="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-300"
+            >
                 Gerar Relatório
             </button>
-             <button className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleInvoiceUpload}
+                className="hidden" 
+                accept=".pdf,.xml,.jpg,.png"
+            />
+             <button 
+                onClick={handleUploadClick}
+                className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300"
+            >
                 Carregar Fatura
             </button>
         </div>
       </div>
+      
+      {showReportSuccess && (
+        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md" role="alert">
+            <p>Relatório gerado com sucesso!</p>
+        </div>
+      )}
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
         <h3 className="text-xl font-semibold p-6 text-gray-800 dark:text-white">Automação de Faturas</h3>
@@ -58,7 +120,7 @@ const Finance: React.FC = () => {
             </tr>
           </thead>
           <tbody className="text-gray-600 dark:text-gray-200 text-sm font-light">
-            {MOCK_INVOICES.map(invoice => (
+            {invoices.map(invoice => (
               <InvoiceRow key={invoice.id} invoice={invoice} />
             ))}
           </tbody>

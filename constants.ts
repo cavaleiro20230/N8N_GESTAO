@@ -1,4 +1,4 @@
-import { Project, ProjectStatus, TaskStatus, Document, Contact, Invoice, InvoiceStatus, UserRole, RolePermissions, Permission } from './types';
+import { Project, ProjectStatus, TaskStatus, Document, Contact, Invoice, InvoiceStatus, UserRole, RolePermissions, Permission, TaskPriority, User } from './types';
 
 export const ALL_PERMISSIONS: { id: Permission; label: string; area: string }[] = [
     { id: 'viewDashboard', label: 'Visualizar Dashboard', area: 'Geral' },
@@ -40,6 +40,14 @@ export const MOCK_ROLE_PERMISSIONS: RolePermissions = {
     ],
 };
 
+export const MOCK_USERS: User[] = [
+    { id: 'user-1', name: 'Admin User', email: 'admin@femar.org.br', role: UserRole.NETWORK_ADMIN },
+    { id: 'user-2', name: 'Ana Silva', email: 'ana.silva@femar.org.br', role: UserRole.MANAGER },
+    { id: 'user-3', name: 'Carlos Pereira', email: 'carlos.pereira@femar.org.br', role: UserRole.COLLABORATOR },
+    { id: 'user-4', name: 'João Mendes', email: 'joao.mendes@femar.org.br', role: UserRole.SUPERINTENDENT },
+    { id: 'user-5', name: 'Sandra Gomes', email: 'sandra.gomes@femar.org.br', role: UserRole.AUDITOR },
+];
+
 export const MOCK_PROJECTS: Project[] = [
   {
     id: 'proj-001',
@@ -50,10 +58,10 @@ export const MOCK_PROJECTS: Project[] = [
     status: ProjectStatus.OnTrack,
     budget: 150000,
     tasks: [
-      { id: 't-1', title: 'Desenvolvimento do Frontend', assignee: 'Carlos Pereira', dueDate: '2024-03-30', status: TaskStatus.Done },
-      { id: 't-2', title: 'Configuração do Banco de Dados', assignee: 'Beatriz Costa', dueDate: '2024-02-28', status: TaskStatus.Done },
-      { id: 't-3', title: 'Integração com n8n', assignee: 'Carlos Pereira', dueDate: '2024-04-15', status: TaskStatus.InProgress },
-      { id: 't-4', title: 'Treinamento de Agente IA', assignee: 'Dario Almeida', dueDate: '2024-05-10', status: TaskStatus.ToDo },
+      { id: 't-1', title: 'Desenvolvimento do Frontend', assignee: 'Carlos Pereira', dueDate: '2024-03-30', status: TaskStatus.Done, priority: TaskPriority.High, description: 'Criar a interface do usuário com React e Tailwind CSS, incluindo todos os componentes de dashboard e gerenciamento.', subTasks: [], attachments: [] },
+      { id: 't-2', title: 'Configuração do Banco de Dados', assignee: 'Beatriz Costa', dueDate: '2024-02-28', status: TaskStatus.Done, priority: TaskPriority.High, description: 'Estruturar o banco de dados SQL para armazenar informações de projetos, usuários e finanças.', subTasks: [], attachments: [] },
+      { id: 't-3', title: 'Integração com n8n', assignee: 'Carlos Pereira', dueDate: '2024-04-15', status: TaskStatus.InProgress, priority: TaskPriority.Medium, description: 'Conectar os webhooks do React com os workflows do n8n para processar dados de projetos e finanças. Garantir que a comunicação seja segura e eficiente.', subTasks: [{ id: 'st-1', title: 'Criar webhook de propostas', completed: true }, { id: 'st-2', title: 'Testar fluxo de ponta a ponta', completed: false }, { id: 'st-3', title: 'Implementar tratamento de erros', completed: false }], attachments: [{ id: 'att-1', fileName: 'diagrama_fluxo.pdf', url: '#' }, { id: 'att-2', fileName: 'api_docs.docx', url: '#' }] },
+      { id: 't-4', title: 'Treinamento de Agente IA', assignee: 'Dario Almeida', dueDate: '2024-05-10', status: TaskStatus.ToDo, priority: TaskPriority.Low, description: 'Alimentar o modelo de IA com documentos de exemplo para treinar a extração de dados de contratos e faturas.', subTasks: [], attachments: [{ id: 'att-3', fileName: 'dataset_treinamento.zip', url: '#' }] },
     ],
   },
   {
@@ -65,8 +73,8 @@ export const MOCK_PROJECTS: Project[] = [
     status: ProjectStatus.AtRisk,
     budget: 85000,
     tasks: [
-      { id: 't-5', title: 'Coleta de dados primários', assignee: 'Elisa Ferreira', dueDate: '2024-05-01', status: TaskStatus.InProgress },
-      { id: 't-6', title: 'Análise de propostas via IA', assignee: 'Dario Almeida', dueDate: '2024-04-25', status: TaskStatus.ToDo },
+      { id: 't-5', title: 'Coleta de dados primários', assignee: 'Elisa Ferreira', dueDate: '2024-05-01', status: TaskStatus.InProgress, priority: TaskPriority.High, description: 'Realizar pesquisas de campo e coletar amostras para análise.', subTasks: [{ id: 'st-4', title: 'Definir áreas de coleta', completed: true }, { id: 'st-5', title: 'Agendar expedições', completed: true }, { id: 'st-6', title: 'Analisar amostras em laboratório', completed: false }], attachments: [] },
+      { id: 't-6', title: 'Análise de propostas via IA', assignee: 'Dario Almeida', dueDate: '2024-04-25', status: TaskStatus.ToDo, priority: TaskPriority.Medium, description: 'Utilizar o agente de IA para analisar e sumarizar propostas de projetos parceiros.', subTasks: [], attachments: [] },
     ],
   },
   {

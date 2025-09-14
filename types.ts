@@ -14,6 +14,13 @@ export enum UserRole {
     AUDITOR = 'Auditor',
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+}
+
 export type Permission = 
   | 'viewDashboard'
   | 'viewProjects'
@@ -46,12 +53,34 @@ export enum TaskStatus {
   Done = 'Done'
 }
 
+export enum TaskPriority {
+  High = 'Alta',
+  Medium = 'Média',
+  Low = 'Baixa',
+}
+
+export interface SubTask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
+export interface Attachment {
+  id: string;
+  fileName: string;
+  url: string;
+}
+
 export interface Task {
   id: string;
   title: string;
   assignee: string;
   dueDate: string;
   status: TaskStatus;
+  priority: TaskPriority;
+  description: string;
+  subTasks: SubTask[];
+  attachments: Attachment[];
 }
 
 export interface Project {
