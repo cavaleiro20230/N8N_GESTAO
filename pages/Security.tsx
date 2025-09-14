@@ -1,7 +1,11 @@
+
 import React, { useState } from 'react';
 import { SecurityEvent, SecurityRiskLevel, User, UserRole } from '../types';
-import { SaveIcon, CheckShieldIcon } from '../components/Icons';
+import { SaveIcon, CheckShieldIcon, DownloadIcon, EyeIcon } from '../components/Icons';
 import { MOCK_ROLE_PERMISSIONS } from '../constants';
+import LogViewerModal from '../components/LogViewerModal';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface SecurityProps {
     user: User;
@@ -38,7 +42,7 @@ const AuthorizationModal: React.FC<{
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg p-8 w-full max-w-lg shadow-xl">
                 <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Autorizar Evento de Risco</h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">A ação "{event.action}" foi marcada como de alto risco. Por favor, forneça uma justificativa para autorizá-la.</p>
@@ -70,6 +74,8 @@ const Security: React.FC<SecurityProps> = ({ user, events, alertEmail, onAlertEm
     const [showSuccess, setShowSuccess] = useState(false);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [eventToAuthorize, setEventToAuthorize] = useState<SecurityEvent | null>(null);
+    const [isViewerOpen, setIsViewerOpen] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState<SecurityEvent | null>(null);
 
     const userPermissions = MOCK_ROLE_PERMISSIONS[user.role] || [];
     const canManageSettings = userPermissions.includes('manageAntiFraudSettings');
@@ -86,6 +92,53 @@ const Security: React.FC<SecurityProps> = ({ user, events, alertEmail, onAlertEm
         setEventToAuthorize(event);
         setIsAuthModalOpen(true);
     };
+    
+    const handleViewDetails = (event: SecurityEvent) => {
+        setSelectedEvent(event);
+        setIsViewerOpen(true);
+    };
+
+    const handleDownloadPdf = () => {
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18);
+        doc.text('Relatório de Segurança - FEMAR Gestão', 14, 22);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
+
+        const tableColumn = ["Data/Hora", "Usuário", "Ação", "Risco", "Autorizado"];
+        const tableRows: (string|null)[][] = [];
+
+        events.forEach(event => {
+            const eventData = [
+                new Date(event.timestamp).toLocaleString('pt-BR'),
+                event.user,
+                event.action,
+                event.riskLevel,
+                event.authorizationInfo ? `Sim (${event.authorizationInfo.authorizedBy})` : 'Não'
+            ];
+            tableRows.push(eventData);
+        });
+
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 40,
+            theme: 'striped',
+            headStyles: { fillColor: [37, 99, 235] }, // Blue color for header
+        });
+        
+        const pageCount = (doc as any).internal.getNumberOfPages();
+        for(let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(9);
+            doc.setTextColor(150);
+            doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 25, doc.internal.pageSize.height - 10);
+        }
+
+        doc.save('relatorio_seguranca_femar.pdf');
+    };
 
     return (
         <div>
@@ -98,6 +151,11 @@ const Security: React.FC<SecurityProps> = ({ user, events, alertEmail, onAlertEm
                         onAuthorizeEvent(eventToAuthorize.id, justification);
                     }
                 }}
+            />
+            <LogViewerModal 
+                isOpen={isViewerOpen}
+                onClose={() => setIsViewerOpen(false)}
+                event={selectedEvent}
             />
             <h2 className="text-3xl font-semibold text-gray-800 dark:text-white mb-8">Central de Segurança</h2>
             
@@ -134,7 +192,13 @@ const Security: React.FC<SecurityProps> = ({ user, events, alertEmail, onAlertEm
             )}
             
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-                <h3 className="text-xl font-semibold p-6 text-gray-800 dark:text-white">Log de Eventos em Tempo Real</h3>
+                <div className="flex justify-between items-center p-6 border-b dark:border-gray-700">
+                    <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Log de Eventos em Tempo Real</h3>
+                    <button onClick={handleDownloadPdf} className="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-300 flex items-center">
+                        <DownloadIcon />
+                        Baixar PDF
+                    </button>
+                </div>
                 <div className="overflow-x-auto">
                     <table className="min-w-full table-auto">
                         <thead className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 uppercase text-sm leading-normal">
@@ -142,8 +206,8 @@ const Security: React.FC<SecurityProps> = ({ user, events, alertEmail, onAlertEm
                                 <th className="py-3 px-6 text-left">Data/Hora</th>
                                 <th className="py-3 px-6 text-left">Usuário</th>
                                 <th className="py-3 px-6 text-left">Ação</th>
-                                <th className="py-3 px-6 text-left">Detalhes</th>
                                 <th className="py-3 px-6 text-center">Risco</th>
+                                <th className="py-3 px-6 text-center">Ações</th>
                                 <th className="py-3 px-6 text-left">Autorização</th>
                             </tr>
                         </thead>
@@ -153,11 +217,15 @@ const Security: React.FC<SecurityProps> = ({ user, events, alertEmail, onAlertEm
                                     <td className="py-3 px-6 text-left whitespace-nowrap">{new Date(event.timestamp).toLocaleString('pt-BR')}</td>
                                     <td className="py-3 px-6 text-left">{event.user}</td>
                                     <td className="py-3 px-6 text-left">{event.action}</td>
-                                    <td className="py-3 px-6 text-left">{event.details}</td>
                                     <td className="py-3 px-6 text-center">
                                         <span className={`py-1 px-3 rounded-full text-xs font-semibold ${getRiskLevelClass(event.riskLevel)}`}>
                                             {event.riskLevel}
                                         </span>
+                                    </td>
+                                    <td className="py-3 px-6 text-center">
+                                        <button onClick={() => handleViewDetails(event)} className="text-blue-500 hover:text-blue-700 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                                            <EyeIcon />
+                                        </button>
                                     </td>
                                     <td className="py-3 px-6 text-left">
                                         {event.riskLevel === SecurityRiskLevel.High && (
