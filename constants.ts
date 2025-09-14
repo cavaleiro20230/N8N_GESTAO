@@ -41,11 +41,11 @@ export const MOCK_ROLE_PERMISSIONS: RolePermissions = {
 };
 
 export const MOCK_USERS: User[] = [
-    { id: 'user-1', name: 'Admin User', email: 'admin@femar.org.br', role: UserRole.NETWORK_ADMIN },
-    { id: 'user-2', name: 'Ana Silva', email: 'ana.silva@femar.org.br', role: UserRole.MANAGER },
-    { id: 'user-3', name: 'Carlos Pereira', email: 'carlos.pereira@femar.org.br', role: UserRole.COLLABORATOR },
-    { id: 'user-4', name: 'João Mendes', email: 'joao.mendes@femar.org.br', role: UserRole.SUPERINTENDENT },
-    { id: 'user-5', name: 'Sandra Gomes', email: 'sandra.gomes@femar.org.br', role: UserRole.AUDITOR },
+    { id: 'user-1', name: 'Admin User', email: 'admin@femar.org.br', role: UserRole.NETWORK_ADMIN, avatarUrl: `https://i.pravatar.cc/150?u=admin@femar.org.br`, forcePasswordChange: false },
+    { id: 'user-2', name: 'Ana Silva', email: 'ana.silva@femar.org.br', role: UserRole.MANAGER, avatarUrl: `https://i.pravatar.cc/150?u=ana.silva@femar.org.br`, forcePasswordChange: true },
+    { id: 'user-3', name: 'Carlos Pereira', email: 'carlos.pereira@femar.org.br', role: UserRole.COLLABORATOR, avatarUrl: `https://i.pravatar.cc/150?u=carlos.pereira@femar.org.br`, forcePasswordChange: true },
+    { id: 'user-4', name: 'João Mendes', email: 'joao.mendes@femar.org.br', role: UserRole.SUPERINTENDENT, avatarUrl: `https://i.pravatar.cc/150?u=joao.mendes@femar.org.br`, forcePasswordChange: false },
+    { id: 'user-5', name: 'Sandra Gomes', email: 'sandra.gomes@femar.org.br', role: UserRole.AUDITOR, avatarUrl: `https://i.pravatar.cc/150?u=sandra.gomes@femar.org.br`, forcePasswordChange: false },
 ];
 
 export const MOCK_PROJECTS: Project[] = [

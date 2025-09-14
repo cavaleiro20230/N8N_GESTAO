@@ -9,6 +9,7 @@ import Finance from './pages/Finance';
 import Permissions from './pages/Permissions';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
+import Profile from './pages/Profile';
 import { View, User } from './types';
 
 const App: React.FC = () => {
@@ -18,7 +19,11 @@ const App: React.FC = () => {
 
   const handleLoginSuccess = (user: User) => {
     setAuthenticatedUser(user);
-    setCurrentView(View.DASHBOARD); // Sempre redireciona para o dashboard após o login
+    if (user.forcePasswordChange) {
+      setCurrentView(View.PROFILE);
+    } else {
+      setCurrentView(View.DASHBOARD);
+    }
   };
 
   const handleLogout = () => {
@@ -26,7 +31,13 @@ const App: React.FC = () => {
     setAuthPage('login'); // Reseta para a tela de login ao sair
   };
 
+  const handleUpdateUser = (updatedUser: User) => {
+    setAuthenticatedUser(updatedUser);
+  };
+
   const renderView = useCallback(() => {
+    if (!authenticatedUser) return null;
+
     switch (currentView) {
       case View.DASHBOARD:
         return <Dashboard />;
@@ -38,10 +49,12 @@ const App: React.FC = () => {
         return <Finance />;
       case View.PERMISSIONS:
         return <Permissions />;
+      case View.PROFILE:
+        return <Profile user={authenticatedUser} onUpdateUser={handleUpdateUser} />;
       default:
         return <Dashboard />;
     }
-  }, [currentView]);
+  }, [currentView, authenticatedUser]);
 
   if (!authenticatedUser) {
     if (authPage === 'login') {
@@ -63,6 +76,7 @@ const App: React.FC = () => {
         <Header 
           user={authenticatedUser}
           currentView={currentView}
+          setCurrentView={setCurrentView}
           onLogout={handleLogout}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900 p-6">

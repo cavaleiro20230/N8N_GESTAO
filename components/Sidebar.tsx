@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { View, User, Permission } from '../types';
 import { DashboardIcon, ProjectsIcon, AdminIcon, FinanceIcon, PermissionsIcon, FemarLogo } from './Icons';
@@ -16,6 +15,7 @@ interface NavItemProps {
   view: View;
   isActive: boolean;
   onClick: () => void;
+  disabled: boolean;
 }
 
 const VIEW_PERMISSIONS: Record<View, Permission> = {
@@ -24,16 +24,20 @@ const VIEW_PERMISSIONS: Record<View, Permission> = {
     [View.ADMINISTRATIVE]: 'viewAdministrative',
     [View.FINANCE]: 'viewFinance',
     [View.PERMISSIONS]: 'managePermissions',
+    // FIX: Added 'View.PROFILE' to satisfy the Record<View, Permission> type.
+    // Using 'viewDashboard' is safe as all roles have this permission.
+    [View.PROFILE]: 'viewDashboard',
 };
 
-const NavItem: React.FC<NavItemProps> = ({ icon, label, isActive, onClick }) => (
+const NavItem: React.FC<NavItemProps> = ({ icon, label, isActive, onClick, disabled }) => (
   <button
     onClick={onClick}
+    disabled={disabled}
     className={`w-full flex items-center p-3 my-1 rounded-lg transition-colors duration-200 ${
       isActive
         ? 'bg-blue-600 text-white'
         : 'text-gray-400 hover:bg-gray-700 hover:text-white'
-    }`}
+    } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
   >
     {icon}
     <span className="mx-4 font-medium">{label}</span>
@@ -73,6 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user, currentView, setCurrentView }) 
               view={item.view}
               isActive={currentView === item.view}
               onClick={() => setCurrentView(item.view)}
+              disabled={user.forcePasswordChange || false}
             />
           ))}
         </nav>

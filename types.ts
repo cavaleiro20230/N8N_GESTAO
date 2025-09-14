@@ -4,6 +4,7 @@ export enum View {
   ADMINISTRATIVE = 'administrative',
   FINANCE = 'finance',
   PERMISSIONS = 'permissions',
+  PROFILE = 'profile',
 }
 
 export enum UserRole {
@@ -19,6 +20,8 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  avatarUrl?: string;
+  forcePasswordChange?: boolean;
 }
 
 export type Permission = 
