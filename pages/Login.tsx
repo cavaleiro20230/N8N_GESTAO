@@ -6,9 +6,10 @@ import { User } from '../types';
 
 interface LoginProps {
   onLoginSuccess: (user: User) => void;
+  onNavigateToForgotPassword: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
+const Login: React.FC<LoginProps> = ({ onLoginSuccess, onNavigateToForgotPassword }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -62,9 +63,13 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                 >
                   Senha
                 </label>
-                <a href="#" className="text-sm text-blue-500 hover:underline">
+                <button
+                  type="button"
+                  onClick={onNavigateToForgotPassword}
+                  className="text-sm text-blue-500 hover:underline"
+                >
                   Esqueceu a senha?
-                </a>
+                </button>
               </div>
               <input
                 type="password"

@@ -8,11 +8,13 @@ import Administrative from './pages/Administrative';
 import Finance from './pages/Finance';
 import Permissions from './pages/Permissions';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
 import { View, User } from './types';
 
 const App: React.FC = () => {
   const [authenticatedUser, setAuthenticatedUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState<View>(View.DASHBOARD);
+  const [authPage, setAuthPage] = useState<'login' | 'forgotPassword'>('login');
 
   const handleLoginSuccess = (user: User) => {
     setAuthenticatedUser(user);
@@ -21,6 +23,7 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     setAuthenticatedUser(null);
+    setAuthPage('login'); // Reseta para a tela de login ao sair
   };
 
   const renderView = useCallback(() => {
@@ -41,7 +44,12 @@ const App: React.FC = () => {
   }, [currentView]);
 
   if (!authenticatedUser) {
-    return <Login onLoginSuccess={handleLoginSuccess} />;
+    if (authPage === 'login') {
+        return <Login onLoginSuccess={handleLoginSuccess} onNavigateToForgotPassword={() => setAuthPage('forgotPassword')} />;
+    }
+    if (authPage === 'forgotPassword') {
+        return <ForgotPassword onNavigateToLogin={() => setAuthPage('login')} />;
+    }
   }
 
   return (
