@@ -5,6 +5,7 @@ export enum View {
   FINANCE = 'finance',
   PERMISSIONS = 'permissions',
   PROFILE = 'profile',
+  SECURITY = 'security',
 }
 
 export enum UserRole {
@@ -37,7 +38,9 @@ export type Permission =
   | 'createInvoices'
   | 'manageInvoices'
   | 'generateReports'
-  | 'managePermissions';
+  | 'managePermissions'
+  | 'viewSecurity'
+  | 'manageAntiFraudSettings';
 
 export interface RolePermissions {
     [key: string]: Permission[];
@@ -127,4 +130,26 @@ export interface Invoice {
     issueDate: string;
     dueDate: string;
     status: InvoiceStatus;
+}
+
+export enum SecurityRiskLevel {
+    Low = 'Baixo',
+    Medium = 'Médio',
+    High = 'Alto',
+}
+
+export interface AuthorizationInfo {
+    authorizedBy: string;
+    timestamp: string;
+    justification: string;
+}
+
+export interface SecurityEvent {
+    id: string;
+    timestamp: string;
+    user: string;
+    action: string;
+    details: string;
+    riskLevel: SecurityRiskLevel;
+    authorizationInfo?: AuthorizationInfo;
 }

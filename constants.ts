@@ -1,4 +1,4 @@
-import { Project, ProjectStatus, TaskStatus, Document, Contact, Invoice, InvoiceStatus, UserRole, RolePermissions, Permission, TaskPriority, User } from './types';
+import { Project, ProjectStatus, TaskStatus, Document, Contact, Invoice, InvoiceStatus, UserRole, RolePermissions, Permission, TaskPriority, User, SecurityEvent, SecurityRiskLevel } from './types';
 
 export const ALL_PERMISSIONS: { id: Permission; label: string; area: string }[] = [
     { id: 'viewDashboard', label: 'Visualizar Dashboard', area: 'Geral' },
@@ -14,13 +14,16 @@ export const ALL_PERMISSIONS: { id: Permission; label: string; area: string }[] 
     { id: 'manageInvoices', label: 'Gerenciar Faturas', area: 'Financeiro' },
     { id: 'generateReports', label: 'Gerar Relatórios', area: 'Financeiro' },
     { id: 'managePermissions', label: 'Gerenciar Permissões', area: 'Sistema' },
+    { id: 'viewSecurity', label: 'Visualizar Log de Segurança', area: 'Segurança' },
+    { id: 'manageAntiFraudSettings', label: 'Gerenciar Antifraude', area: 'Segurança' },
 ];
 
 export const MOCK_ROLE_PERMISSIONS: RolePermissions = {
     [UserRole.NETWORK_ADMIN]: [
         'viewDashboard', 'viewProjects', 'createProjects', 'editProjects', 'deleteProjects',
         'viewAdministrative', 'uploadDocuments', 'manageContacts', 'viewFinance',
-        'createInvoices', 'manageInvoices', 'generateReports', 'managePermissions'
+        'createInvoices', 'manageInvoices', 'generateReports', 'managePermissions', 
+        'viewSecurity', 'manageAntiFraudSettings'
     ],
     [UserRole.SUPERINTENDENT]: [
         'viewDashboard', 'viewProjects', 'createProjects', 'editProjects', 'deleteProjects',
@@ -36,7 +39,7 @@ export const MOCK_ROLE_PERMISSIONS: RolePermissions = {
         'viewDashboard', 'viewProjects', 'editProjects', 'viewAdministrative', 'uploadDocuments'
     ],
     [UserRole.AUDITOR]: [
-        'viewDashboard', 'viewProjects', 'viewAdministrative', 'viewFinance'
+        'viewDashboard', 'viewProjects', 'viewAdministrative', 'viewFinance', 'viewSecurity'
     ],
 };
 
@@ -106,4 +109,10 @@ export const MOCK_INVOICES: Invoice[] = [
     { id: 'inv-2', invoiceNumber: '2024-059', client: 'Consultoria Ambiental Marítima', amount: 7800.50, issueDate: '2024-03-15', dueDate: '2024-04-14', status: InvoiceStatus.Pending },
     { id: 'inv-3', invoiceNumber: '2024-050', client: 'Fornecedora Atlântico', amount: 3400.00, issueDate: '2024-02-20', dueDate: '2024-03-21', status: InvoiceStatus.Overdue },
     { id: 'inv-4', invoiceNumber: '2024-061', client: 'Universidade Federal do Rio', amount: 22000.00, issueDate: '2024-03-25', dueDate: '2024-04-24', status: InvoiceStatus.Pending },
+];
+
+export const MOCK_SECURITY_EVENTS: SecurityEvent[] = [
+    { id: 'evt-1', timestamp: new Date(Date.now() - 3600000).toISOString(), user: 'admin@femar.org.br', action: 'Login bem-sucedido', details: 'IP: 189.45.123.10', riskLevel: SecurityRiskLevel.Low },
+    { id: 'evt-2', timestamp: new Date(Date.now() - 7200000).toISOString(), user: 'ana.silva@femar.org.br', action: 'Alteração de Projeto', details: 'Projeto "Análise Costeira" atualizado', riskLevel: SecurityRiskLevel.Medium },
+    { id: 'evt-3', timestamp: new Date(Date.now() - 86400000).toISOString(), user: 'carlos.pereira@femar.org.br', action: 'Upload de Documento', details: 'Arquivo "contrato_final.pdf" carregado', riskLevel: SecurityRiskLevel.Low },
 ];

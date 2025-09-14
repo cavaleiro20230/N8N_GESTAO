@@ -1,6 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { MOCK_INVOICES } from '../constants';
-import { Invoice, InvoiceStatus } from '../types';
+import { Invoice, InvoiceStatus, User, SecurityRiskLevel } from '../types';
+
+interface FinanceProps {
+    user: User;
+    logSecurityEvent: (event: { user: string; action: string; details: string; riskLevel: SecurityRiskLevel }) => void;
+}
 
 const getStatusClass = (status: InvoiceStatus) => {
     switch (status) {
@@ -29,13 +34,19 @@ const InvoiceRow: React.FC<{ invoice: Invoice }> = ({ invoice }) => (
     </tr>
   );
 
-const Finance: React.FC = () => {
+const Finance: React.FC<FinanceProps> = ({ user, logSecurityEvent }) => {
   const [invoices, setInvoices] = useState<Invoice[]>(MOCK_INVOICES);
   const [showReportSuccess, setShowReportSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const ANOMALY_THRESHOLD = 20000;
 
   const handleGenerateReport = () => {
-    console.log("Gerando relatório financeiro...");
+    logSecurityEvent({
+        user: user.email,
+        action: 'Geração de Relatório',
+        details: 'Relatório financeiro geral foi gerado.',
+        riskLevel: SecurityRiskLevel.Medium,
+    });
     setShowReportSuccess(true);
     setTimeout(() => {
       setShowReportSuccess(false);
@@ -52,7 +63,7 @@ const Finance: React.FC = () => {
 
     // Simula extração de dados via IA a partir do nome do arquivo
     const clientName = file.name.split('.')[0].replace(/_/g, ' ').replace(/fatura/i, '').trim() || 'Cliente Desconhecido';
-    const randomAmount = Math.random() * 5000 + 1000;
+    const randomAmount = Math.random() * (ANOMALY_THRESHOLD + 5000) + 1000;
     const issueDate = new Date();
     const dueDate = new Date();
     dueDate.setDate(issueDate.getDate() + 30);
@@ -66,6 +77,15 @@ const Finance: React.FC = () => {
         dueDate: dueDate.toISOString().split('T')[0],
         status: InvoiceStatus.Pending,
     };
+
+    const riskLevel = newInvoice.amount > ANOMALY_THRESHOLD ? SecurityRiskLevel.High : SecurityRiskLevel.Low;
+    logSecurityEvent({
+        user: user.email,
+        action: 'Carregamento de Fatura',
+        details: `Fatura ${newInvoice.invoiceNumber} para ${newInvoice.client} no valor de R$ ${newInvoice.amount.toFixed(2)}.`,
+        riskLevel: riskLevel,
+    });
+
 
     setInvoices(prevInvoices => [newInvoice, ...prevInvoices]);
     

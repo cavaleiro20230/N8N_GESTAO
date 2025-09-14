@@ -17,6 +17,7 @@ const viewTitles: { [key in View | 'profile']: string } = {
     [View.FINANCE]: 'Gerenciamento Financeiro',
     [View.PERMISSIONS]: 'Gerenciamento de Permissões',
     [View.PROFILE]: 'Meu Perfil',
+    [View.SECURITY]: 'Central de Segurança',
 };
 
 const UserAvatar: React.FC<{ user: User }> = ({ user }) => {

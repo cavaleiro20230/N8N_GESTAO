@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, User, Permission } from '../types';
-import { DashboardIcon, ProjectsIcon, AdminIcon, FinanceIcon, PermissionsIcon, FemarLogo } from './Icons';
+import { DashboardIcon, ProjectsIcon, AdminIcon, FinanceIcon, PermissionsIcon, FemarLogo, SecurityIcon } from './Icons';
 import { MOCK_ROLE_PERMISSIONS } from '../constants';
 
 interface SidebarProps {
@@ -24,6 +24,7 @@ const VIEW_PERMISSIONS: Record<View, Permission> = {
     [View.ADMINISTRATIVE]: 'viewAdministrative',
     [View.FINANCE]: 'viewFinance',
     [View.PERMISSIONS]: 'managePermissions',
+    [View.SECURITY]: 'viewSecurity',
     // FIX: Added 'View.PROFILE' to satisfy the Record<View, Permission> type.
     // Using 'viewDashboard' is safe as all roles have this permission.
     [View.PROFILE]: 'viewDashboard',
@@ -51,6 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user, currentView, setCurrentView }) 
     { icon: <AdminIcon />, label: 'Administrativo', view: View.ADMINISTRATIVE },
     { icon: <FinanceIcon />, label: 'Financeiro', view: View.FINANCE },
     { icon: <PermissionsIcon />, label: 'Permissões', view: View.PERMISSIONS },
+    { icon: <SecurityIcon />, label: 'Segurança', view: View.SECURITY },
   ], []);
 
   const visibleNavItems = useMemo(() => {

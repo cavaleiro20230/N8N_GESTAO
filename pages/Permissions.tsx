@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { MOCK_ROLE_PERMISSIONS, ALL_PERMISSIONS, MOCK_USERS } from '../constants';
-import { UserRole, Permission, RolePermissions, User } from '../types';
+import { UserRole, Permission, RolePermissions, User, SecurityRiskLevel } from '../types';
 import { PlusIcon, EditIcon, DeleteIcon } from '../components/Icons';
 
 const UserModal: React.FC<{
@@ -70,7 +70,12 @@ const UserModal: React.FC<{
     );
 };
 
-const Permissions: React.FC = () => {
+interface PermissionsProps {
+    user: User;
+    logSecurityEvent: (event: { user: string; action: string; details: string; riskLevel: SecurityRiskLevel }) => void;
+}
+
+const Permissions: React.FC<PermissionsProps> = ({ user: currentUser, logSecurityEvent }) => {
   const [permissions, setPermissions] = useState<RolePermissions>(MOCK_ROLE_PERMISSIONS);
   const [users, setUsers] = useState<User[]>(MOCK_USERS);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -90,11 +95,29 @@ const Permissions: React.FC = () => {
 
   const handleDeleteUser = (userId: string) => {
     if(window.confirm("Tem certeza que deseja excluir este usuário?")) {
+        const userToDelete = users.find(u => u.id === userId);
+        if (userToDelete) {
+            logSecurityEvent({
+                user: currentUser.email,
+                action: 'Exclusão de Usuário',
+                details: `Usuário "${userToDelete.name}" (${userToDelete.email}) foi excluído.`,
+                riskLevel: SecurityRiskLevel.Medium,
+            });
+        }
         setUsers(users.filter(u => u.id !== userId));
     }
   };
 
   const handleSaveUser = (user: User) => {
+    const action = editingUser ? 'Atualização de Usuário' : 'Criação de Usuário';
+    const details = `Usuário "${user.name}" (${user.email}) foi ${editingUser ? 'atualizado' : 'criado'} com o perfil ${user.role}.`;
+    logSecurityEvent({
+        user: currentUser.email,
+        action: action,
+        details: details,
+        riskLevel: SecurityRiskLevel.Medium,
+    });
+    
     if (editingUser) {
         setUsers(users.map(u => u.id === user.id ? user : u));
     } else {
@@ -109,12 +132,27 @@ const Permissions: React.FC = () => {
       const newPermissions = currentPermissions.includes(permissionId)
         ? currentPermissions.filter(p => p !== permissionId)
         : [...currentPermissions, permissionId];
+
+      if (permissionId === 'managePermissions' && newPermissions.includes('managePermissions')) {
+        logSecurityEvent({
+            user: currentUser.email,
+            action: 'Escalação de Privilégio Potencial',
+            details: `Permissão "Gerenciar Permissões" concedida ao perfil "${role}".`,
+            riskLevel: SecurityRiskLevel.High,
+        });
+      }
+
       return { ...prev, [role]: newPermissions };
     });
   };
   
   const handleSavePermissions = () => {
-      console.log("Saving permissions:", permissions);
+      logSecurityEvent({
+        user: currentUser.email,
+        action: 'Alteração de Permissões',
+        details: 'Matriz de permissões foi atualizada.',
+        riskLevel: SecurityRiskLevel.Medium,
+      });
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
   };
